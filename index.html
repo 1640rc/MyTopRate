@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nearby Business Finder</title>
+<style>
+  :root{
+    --accent:#4f46e5;
+    --accent-dark:#4338ca;
+    --accent-light:#eef0fe;
+    --star:#f5b400;
+    --bg:#f4f5f9;
+    --card-bg:#ffffff;
+    --text:#1f2330;
+    --text-muted:#6b7280;
+    --border:#e5e7eb;
+    --danger:#dc2626;
+    --danger-bg:#fef2f2;
+    --ok:#16a34a;
+    --radius:14px;
+    --shadow:0 1px 3px rgba(20,20,43,.06), 0 8px 24px rgba(20,20,43,.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, #eef0ff 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, #f0fdfa 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  .wrap{max-width:1140px;margin:0 auto;padding:28px 20px 0;}
+
+  header.hero{
+    text-align:center;
+    padding:18px 0 26px;
+  }
+  header.hero h1{
+    font-size:2rem;
+    margin:0 0 6px;
+    background:linear-gradient(135deg,var(--accent),#7c3aed);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    font-weight:800;
+  }
+  header.hero p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+  }
+
+  /* ---------- Settings box (reused by the Advertising panel) ---------- */
+  .settings{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 20px;
+    margin-bottom:22px;
+  }
+  .settings-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    cursor:pointer;
+    user-select:none;
+  }
+  .settings-head .title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:1rem;
+  }
+  .settings-head .title .dot{
+    width:10px;height:10px;border-radius:50%;background:var(--danger);
+    box-shadow:0 0 0 3px var(--danger-bg);
+    transition:background .2s, box-shadow .2s;
+  }
+  .settings-head .title .dot.connected{
+    background:var(--ok);
+    box-shadow:0 0 0 3px #dcfce7;
+  }
+  .settings-head .chev{transition:transform .2s;color:var(--text-muted);}
+  .settings.collapsed .chev{transform:rotate(-90deg);}
+  .settings-body{
+    margin-top:16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:flex-end;
+  }
+  .settings.collapsed .settings-body{display:none;}
+  .field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:240px;}
+  .field label{font-size:.8rem;font-weight:600;color:var(--text-muted);}
+  .key-input-row{display:flex;gap:8px;}
+  .key-input-row input{
+    flex:1;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:.92rem;
+    background:#fafafb;
+  }
+  .key-input-row input:focus{outline:2px solid var(--accent-light);border-color:var(--accent);}
+  .icon-btn{
+    padding:10px 12px;
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:.85rem;
+    color:var(--text-muted);
+  }
+  .icon-btn:hover{background:#f3f4f6;}
+  .btn{
+    padding:10px 16px;
+    border-radius:10px;
+    border:none;
+    background:var(--accent);
+    color:#fff;
+    font-weight:600;
+    font-size:.92rem;
+    cursor:pointer;
+    transition:background .15s, transform .05s;
+    white-space:nowrap;
+  }
+  .btn:hover{background:var(--accent-dark);}
+  .btn:active{transform:scale(.98);}
+  .btn.secondary{
+    background:#fff;
+    color:var(--text);
+    border:1px solid var(--border);
+  }
+  .btn.secondary:hover{background:#f3f4f6;}
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+  .settings-note{
+    width:100%;
+    font-size:.8rem;
+    color:var(--text-muted);
+    margin-top:4px;
+  }
+  .settings-note a{color:var(--accent);text-decoration:none;}
+  .settings-note a:hover{text-decoration:underline;}
+  .status-msg{
+    font-size:.82rem;
+    font-weight:600;
+    padding:6px 10px;
+    border-radius:8px;
+  }
+  .status-msg.ok{color:var(--ok);background:#f0fdf4;}
+  .status-msg.err{color:var(--danger);background:var(--danger-bg);}
+
+  /* ---------- Search controls ---------- */
+  .controls{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 20px;
+    margin-bottom:24px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:flex-end;
+  }
+  .controls .field{min-width:200px;}
+  .controls input[type=text], .controls select{
+    padding:11px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:.94rem;
+    background:#fafafb;
+    width:100%;
+  }
+  .controls input[type=text]:focus, .controls select:focus{
+    outline:2px solid var(--accent-light);border-color:var(--accent);
+  }
+  .gps-btn{
+    display:flex;align-items:center;gap:6px;
+  }
+  .search-btn{min-width:130px;}
+  .divider-or{
+    color:var(--text-muted);
+    font-size:.82rem;
+    padding-bottom:12px;
+  }
+
+  /* ---------- Messages ---------- */
+  .banner{
+    padding:12px 16px;
+    border-radius:10px;
+    font-size:.9rem;
+    margin-bottom:18px;
+    display:none;
+  }
+  .banner.show{display:block;}
+  .banner.warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a;}
+  .banner.error{background:var(--danger-bg);color:var(--danger);border:1px solid #fecaca;}
+  .banner.info{background:var(--accent-light);color:var(--accent-dark);border:1px solid #c7d2fe;}
+
+  /* ---------- Ads ---------- */
+  /* .ad-block is a full-width banner (spans every grid column). */
+  .ad-block{grid-column:1/-1;margin:4px 0;}
+  /* .ad-tile sits IN the normal card flow, taking one grid cell (styled like a card)
+     so it doesn't leave empty space next to a fixed-size ad. */
+  .ad-tile{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    text-align:center;
+  }
+  .ad-label{
+    font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--text-muted);margin-bottom:2px;text-align:center;
+  }
+  ins.adsbygoogle{max-width:100%;}
+  .ad-slot-display{min-height:90px;width:100%;}
+  .ad-slot-video{min-height:220px;width:100%;}
+  .ad-placeholder-text{
+    color:var(--text-muted);font-size:.78rem;padding:14px;text-align:center;
+    background:#fafafa;border:1px dashed var(--border);border-radius:12px;
+    width:100%;
+  }
+
+  /* ---------- Results ---------- */
+  .results-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;
+    flex-wrap:wrap;gap:8px;
+  }
+  .results-head h2{font-size:1.05rem;margin:0;}
+  .results-head span{color:var(--text-muted);font-size:.85rem;}
+
+  .sort-buttons{
+    display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;
+  }
+  .sort-btn{
+    padding:8px 14px;border-radius:999px;border:1px solid var(--border);
+    background:#fff;color:var(--text-muted);font-size:.85rem;font-weight:600;
+    cursor:pointer;transition:background .15s, color .15s, border-color .15s;
+  }
+  .sort-btn:hover{background:#f3f4f6;}
+  .sort-btn.active{
+    background:var(--accent);border-color:var(--accent);color:#fff;
+  }
+
+  .show-more-row{grid-column:1/-1;text-align:center;padding:10px 0 4px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(270px,1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:var(--shadow);
+    transition:transform .15s, box-shadow .15s;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    text-decoration:none;
+    color:inherit;
+  }
+  .card:visited{color:inherit;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(20,20,43,.08), 0 14px 30px rgba(20,20,43,.10);}
+  .maps-link{
+    margin-top:auto;padding-top:4px;color:var(--accent);font-size:.8rem;font-weight:600;
+  }
+
+  .rec-badge{
+    display:inline-flex;align-items:center;gap:5px;width:fit-content;
+    background:linear-gradient(135deg,#f97316,#ef4444);
+    color:#fff;font-weight:800;font-size:.85rem;
+    padding:5px 11px;border-radius:999px;
+    box-shadow:0 2px 6px rgba(239,68,68,.35);
+  }
+  .card .rank{
+    font-size:.72rem;
+    font-weight:700;
+    color:var(--accent);
+    background:var(--accent-light);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;height:22px;
+    border-radius:50%;
+    margin-bottom:2px;
+  }
+  .card h3{
+    margin:0;
+    font-size:1.05rem;
+    line-height:1.3;
+  }
+  .rating-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .stars{
+    position:relative;
+    display:inline-block;
+    font-size:1.1rem;
+    line-height:1;
+    letter-spacing:2px;
+    font-family:Arial, sans-serif;
+  }
+  .stars .back{color:#e0e0e6;white-space:nowrap;}
+  .stars .front{
+    position:absolute;top:0;left:0;
+    color:var(--star);
+    overflow:hidden;
+    white-space:nowrap;
+  }
+  .rating-num{font-weight:700;font-size:.95rem;}
+  .review-count{color:var(--text-muted);font-size:.85rem;}
+  .no-rating{color:var(--text-muted);font-size:.85rem;font-style:italic;}
+  .address{
+    display:flex;gap:6px;color:var(--text-muted);font-size:.85rem;line-height:1.4;
+    margin-top:2px;
+  }
+  .address svg{flex:none;margin-top:2px;}
+  .type-badge{
+    display:inline-block;
+    font-size:.72rem;
+    font-weight:600;
+    color:var(--accent-dark);
+    background:var(--accent-light);
+    padding:3px 8px;
+    border-radius:999px;
+    width:fit-content;
+  }
+  .open-status{font-size:.78rem;font-weight:600;}
+  .open-status.open{color:var(--ok);}
+  .open-status.closed{color:var(--danger);}
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--text-muted);
+  }
+  .empty-state .big{font-size:2.2rem;margin-bottom:10px;}
+
+  .spinner{
+    width:34px;height:34px;
+    border:3px solid var(--accent-light);
+    border-top-color:var(--accent);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+    margin:40px auto;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  footer.attrib{
+    text-align:center;
+    margin-top:36px;
+    color:var(--text-muted);
+    font-size:.78rem;
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:640px){
+    body{padding-bottom:32px;}
+    .wrap{padding:16px 12px 0;}
+    header.hero{padding:10px 0 18px;}
+    header.hero h1{font-size:1.4rem;}
+    header.hero p{font-size:.88rem;}
+
+    .controls, .settings{padding:14px;}
+    .settings-body{gap:10px;}
+    .divider-or{display:none;}
+
+    /* Full-width stacked fields instead of cramped inline chunks */
+    .field, .controls .field{min-width:0;flex-basis:100%;}
+    .key-input-row{flex-basis:100%;}
+    .settings-head .title span:last-child{font-size:.92rem;}
+
+    .btn, .icon-btn, .sort-btn{min-height:44px;}
+    .controls .btn, .settings-body .btn, .settings-body .icon-btn{width:100%;}
+    .controls input[type=text], .controls select, .key-input-row input,
+    .settings-body input[type=text]{min-height:44px;}
+    .gps-btn{flex-basis:100%;justify-content:center;}
+    .search-btn{width:100%;min-width:0;}
+
+    .sort-buttons{gap:6px;}
+    .sort-btn{flex:1 1 0;text-align:center;padding:9px 6px;font-size:.78rem;white-space:nowrap;}
+
+    /* One column — 270px min-width plus grid gap can overflow the smallest phones */
+    .grid{grid-template-columns:1fr;gap:12px;}
+    .card{padding:15px;}
+    .card h3{font-size:1rem;}
+
+    .results-head{gap:10px;}
+    .rec-badge{font-size:.8rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>Nearby Business Finder</h1>
+    <p>Search by zip code or your current location — results ranked by Google rating.</p>
+  </header>
+
+  <div class="banner error" id="errorBanner"></div>
+  <div class="banner info" id="infoBanner"></div>
+
+  <!-- Advertising settings -->
+  <div class="settings collapsed" id="adsSettingsBox">
+    <div class="settings-head" id="adsSettingsToggle">
+      <div class="title">
+        <span class="dot" id="adsStatusDot"></span>
+        <span>Advertising (Google AdSense)</span>
+      </div>
+      <span class="chev" id="adsChev">▾</span>
+    </div>
+    <div class="settings-body">
+      <div class="field" style="min-width:220px;">
+        <label for="adsPubIdInput">Publisher ID</label>
+        <input type="text" id="adsPubIdInput" placeholder="ca-pub-XXXXXXXXXXXXXXXX" autocomplete="off" />
+      </div>
+      <div class="field" style="min-width:180px;">
+        <label for="adsDisplaySlotInput">Display Ad Slot ID</label>
+        <input type="text" id="adsDisplaySlotInput" placeholder="e.g. 1234567890" autocomplete="off" />
+      </div>
+      <div class="field" style="min-width:180px;">
+        <label for="adsVideoSlotInput">Video Ad Slot ID</label>
+        <input type="text" id="adsVideoSlotInput" placeholder="e.g. 0987654321" autocomplete="off" />
+      </div>
+      <button class="btn" id="adsSaveBtn" type="button">Save &amp; Enable Ads</button>
+      <button class="btn secondary" id="adsClearBtn" type="button">Clear</button>
+      <span class="status-msg" id="adsStatusMsg" style="display:none;"></span>
+      <div class="settings-note">
+        Create a "Display" ad unit and a video-enabled ad unit in your
+        <a href="https://www.google.com/adsense" target="_blank" rel="noopener">Google AdSense</a> account and paste
+        the IDs here. Ads only render on a real, AdSense-approved public domain.
+      </div>
+    </div>
+  </div>
+
+  <!-- Sponsored ad slots are built in JS and inserted inside the results grid
+       (after the 3rd, 5th and 10th cards) rather than living here statically. -->
+
+  <!-- Search controls -->
+  <div class="controls">
+    <div class="field">
+      <label for="zipInput">Zip Code</label>
+      <input type="text" id="zipInput" placeholder="e.g. 33131" inputmode="numeric" />
+    </div>
+    <div class="divider-or">or</div>
+    <button class="btn secondary gps-btn" id="gpsBtn" type="button">
+      <span id="gpsIcon">📍</span> Use My Location
+    </button>
+    <div class="field">
+      <label for="typeSelect">Business Type</label>
+      <select id="typeSelect">
+        <option value="restaurant">Restaurants</option>
+        <option value="cafe">Cafes</option>
+        <option value="gym">Gyms</option>
+        <option value="car_repair">Mechanics / Auto Repair</option>
+        <option value="bar">Bars</option>
+        <option value="bakery">Bakeries</option>
+        <option value="lodging">Hotels</option>
+        <option value="hair_care">Hair Salons</option>
+        <option value="dentist">Dentists</option>
+        <option value="pharmacy">Pharmacies</option>
+        <option value="plumber">Plumbers</option>
+        <option value="electrician">Electricians</option>
+        <option value="grocery_or_supermarket">Grocery Stores</option>
+        <option value="furniture_store" data-keyword="furniture">Furniture Stores</option>
+        <option value="furniture_store" data-keyword="furniture outlet">Furniture Outlets</option>
+        <option value="furniture_store" data-keyword="mattress">Mattress Stores</option>
+        <option value="shopping_mall">Shopping</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="customTypeInput">Or Type Your Own</label>
+      <input type="text" id="customTypeInput" placeholder="e.g., vegan bakery, pet groomer" autocomplete="off" />
+    </div>
+    <div class="field" style="min-width:140px;">
+      <label for="radiusSelect">Search Radius</label>
+      <select id="radiusSelect">
+        <option value="1609">1 mile</option>
+        <option value="8047" selected>5 miles</option>
+        <option value="16093">10 miles</option>
+        <option value="40234">25 miles</option>
+      </select>
+    </div>
+    <button class="btn search-btn" id="searchBtn" type="button">Search</button>
+    <div class="settings-note" style="flex-basis:100%;margin-top:-4px;">
+      Typing something in "Or Type Your Own" overrides the Business Type dropdown for that search.
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsSection" style="display:none;">
+    <div class="results-head">
+      <h2 id="resultsTitle">Results</h2>
+      <span id="resultsCount"></span>
+    </div>
+    <div class="sort-buttons" id="sortButtons" role="group" aria-label="Sort results">
+      <button type="button" class="sort-btn active" data-sort="rating">★ Top Rated</button>
+      <button type="button" class="sort-btn" data-sort="reviews">💬 Most Reviewed</button>
+      <button type="button" class="sort-btn" data-sort="recommended">🔥 Recommended</button>
+    </div>
+    <div class="grid" id="resultsGrid"></div>
+  </div>
+
+  <div id="loadingState" style="display:none;">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="empty-state" id="emptyState">
+    <div class="big">🔎</div>
+    <div>Enter a zip code or use your location to find highly-rated businesses nearby.</div>
+  </div>
+
+  <footer class="attrib" id="attribFooter" style="display:none;">
+    Results powered by Google
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var ADS_PUB_KEY = 'gplaces_finder_ads_pubid';
+  var ADS_DISPLAY_KEY = 'gplaces_finder_ads_display_slot';
+  var ADS_VIDEO_KEY = 'gplaces_finder_ads_video_slot';
+
+  var els = {
+    errorBanner: document.getElementById('errorBanner'),
+    infoBanner: document.getElementById('infoBanner'),
+    zipInput: document.getElementById('zipInput'),
+    gpsBtn: document.getElementById('gpsBtn'),
+    typeSelect: document.getElementById('typeSelect'),
+    customTypeInput: document.getElementById('customTypeInput'),
+    radiusSelect: document.getElementById('radiusSelect'),
+    sortButtons: document.getElementById('sortButtons'),
+    searchBtn: document.getElementById('searchBtn'),
+    resultsSection: document.getElementById('resultsSection'),
+    resultsTitle: document.getElementById('resultsTitle'),
+    resultsCount: document.getElementById('resultsCount'),
+    resultsGrid: document.getElementById('resultsGrid'),
+    loadingState: document.getElementById('loadingState'),
+    emptyState: document.getElementById('emptyState'),
+    attribFooter: document.getElementById('attribFooter'),
+    adsSettingsBox: document.getElementById('adsSettingsBox'),
+    adsSettingsToggle: document.getElementById('adsSettingsToggle'),
+    adsStatusDot: document.getElementById('adsStatusDot'),
+    adsPubIdInput: document.getElementById('adsPubIdInput'),
+    adsDisplaySlotInput: document.getElementById('adsDisplaySlotInput'),
+    adsVideoSlotInput: document.getElementById('adsVideoSlotInput'),
+    adsSaveBtn: document.getElementById('adsSaveBtn'),
+    adsClearBtn: document.getElementById('adsClearBtn'),
+    adsStatusMsg: document.getElementById('adsStatusMsg')
+  };
+
+  var lastRawResults = [];
+  var lastResultsLabel = '';
+  var currentSortMode = 'rating';
+  var currentTypeLabel = ''; // label shown on cards' type badge for the last search actually run
+  var showingAll = false; // false = top 10 shown, true = up to 20 shown
+
+  /* ---------------- Ad blocks (built once, moved into the grid on render) ---------------- */
+
+  function buildAdBlock(opts){
+    var wrap = document.createElement('div');
+    // 'banner' = full-width row (spans every grid column). 'tile' = a single grid
+    // cell styled like a card, so it sits inline with results instead of leaving
+    // empty space around a fixed-size ad on its own row.
+    wrap.className = opts.layout === 'tile' ? 'ad-tile' : 'ad-block';
+    wrap.id = opts.wrapId;
+
+    var label = document.createElement('div');
+    label.className = 'ad-label';
+    label.textContent = opts.label;
+    wrap.appendChild(label);
+
+    var ins = document.createElement('ins');
+    ins.className = 'adsbygoogle ' + opts.insClass;
+    ins.id = opts.insId;
+    ins.style.display = 'block';
+    ins.setAttribute('data-ad-format', 'auto');
+    ins.setAttribute('data-full-width-responsive', 'true');
+    wrap.appendChild(ins);
+
+    var placeholder = document.createElement('div');
+    placeholder.className = 'ad-placeholder-text';
+    placeholder.id = opts.placeholderId;
+    placeholder.textContent = opts.placeholderText;
+    wrap.appendChild(placeholder);
+
+    return { wrap: wrap, ins: ins, placeholder: placeholder, pushed: false };
+  }
+
+  var displayAd = buildAdBlock({
+    wrapId: 'displayAdBlock', insId: 'displayAdIns', insClass: 'ad-slot-display', layout: 'banner',
+    label: 'Advertisement', placeholderId: 'displayAdPlaceholder',
+    placeholderText: 'Add your AdSense Publisher ID and Display Ad Slot ID above to show a banner ad here.'
+  });
+  var videoAd = buildAdBlock({
+    wrapId: 'videoAdBlock', insId: 'videoAdIns', insClass: 'ad-slot-video', layout: 'tile',
+    label: 'Sponsored', placeholderId: 'videoAdPlaceholder',
+    placeholderText: 'Add your AdSense Publisher ID and Video Ad Slot ID above to show an ad here.'
+  });
+  // Second placement at slot #10 — reuses the same Display Ad Slot ID from settings
+  // (AdSense supports the same ad unit appearing more than once on a page), but is
+  // its own <ins> element/DOM node since one ad element can't occupy two spots at once.
+  var displayAd2 = buildAdBlock({
+    wrapId: 'displayAd2Block', insId: 'displayAd2Ins', insClass: 'ad-slot-display-tile', layout: 'tile',
+    label: 'Advertisement', placeholderId: 'displayAd2Placeholder',
+    placeholderText: 'Add your AdSense Publisher ID and Display Ad Slot ID above to show an ad here.'
+  });
+
+  els.displayAdIns = displayAd.ins;
+  els.displayAdPlaceholder = displayAd.placeholder;
+  els.videoAdIns = videoAd.ins;
+  els.videoAdPlaceholder = videoAd.placeholder;
+  els.displayAd2Ins = displayAd2.ins;
+  els.displayAd2Placeholder = displayAd2.placeholder;
+
+  /* ---------------- UI helpers ---------------- */
+
+  function showBanner(el, msg){
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function hideBanner(el){
+    el.classList.remove('show');
+    el.textContent = '';
+  }
+  function hideAllBanners(){
+    hideBanner(els.errorBanner);
+    hideBanner(els.infoBanner);
+  }
+  function collapseAdsSettings(collapsed){
+    els.adsSettingsBox.classList.toggle('collapsed', collapsed);
+  }
+  function setAdsStatus(msg, ok){
+    els.adsStatusMsg.style.display = 'inline-block';
+    els.adsStatusMsg.textContent = msg;
+    els.adsStatusMsg.className = 'status-msg ' + (ok ? 'ok' : 'err');
+  }
+  function setAdsConnected(connected){
+    els.adsStatusDot.classList.toggle('connected', !!connected);
+  }
+
+  /* ---------------- AdSense handling ---------------- */
+
+  function getAdsConfig(){
+    try {
+      return {
+        pubId: localStorage.getItem(ADS_PUB_KEY) || '',
+        displaySlot: localStorage.getItem(ADS_DISPLAY_KEY) || '',
+        videoSlot: localStorage.getItem(ADS_VIDEO_KEY) || ''
+      };
+    } catch(e){ return { pubId:'', displaySlot:'', videoSlot:'' }; }
+  }
+  function saveAdsConfig(cfg){
+    try {
+      localStorage.setItem(ADS_PUB_KEY, cfg.pubId);
+      localStorage.setItem(ADS_DISPLAY_KEY, cfg.displaySlot);
+      localStorage.setItem(ADS_VIDEO_KEY, cfg.videoSlot);
+    } catch(e){}
+  }
+  function clearAdsConfig(){
+    try {
+      localStorage.removeItem(ADS_PUB_KEY);
+      localStorage.removeItem(ADS_DISPLAY_KEY);
+      localStorage.removeItem(ADS_VIDEO_KEY);
+    } catch(e){}
+  }
+
+  function loadAdSenseScript(pubId){
+    return new Promise(function(resolve, reject){
+      if(window.__adsenseLoaded){ resolve(); return; }
+      var script = document.createElement('script');
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(pubId);
+      script.onload = function(){ window.__adsenseLoaded = true; resolve(); };
+      script.onerror = function(){ reject(new Error('Failed to load the AdSense script. Check the Publisher ID.')); };
+      document.head.appendChild(script);
+    });
+  }
+
+  function pushAdSlot(ins){
+    if(!ins) return;
+    if(ins.getAttribute('data-adsbygoogle-status') === 'done') return;
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch(e){
+      // AdSense throws if pushed before the script is ready or twice for the same slot; safe to ignore here.
+    }
+  }
+
+  // Ad slots must actually be attached to the document before AdSense will fill them.
+  // They only get attached once search results exist (see renderResults), so pushing
+  // happens there, not here — this just wires up which slot/client each ins should use.
+  function ensureAdPushed(adObj){
+    if(!adObj.pushed && adObj.ins.isConnected && adObj.ins.getAttribute('data-ad-client')){
+      pushAdSlot(adObj.ins);
+      adObj.pushed = true;
+    }
+  }
+
+  function initAds(silent){
+    var cfg = getAdsConfig();
+    if(!cfg.pubId){
+      setAdsConnected(false);
+      return Promise.resolve(false);
+    }
+    return loadAdSenseScript(cfg.pubId).then(function(){
+      setAdsConnected(true);
+      if(!silent) setAdsStatus('Connected ✓', true);
+      if(cfg.displaySlot){
+        els.displayAdIns.setAttribute('data-ad-client', cfg.pubId);
+        els.displayAdIns.setAttribute('data-ad-slot', cfg.displaySlot);
+        els.displayAdPlaceholder.style.display = 'none';
+        ensureAdPushed(displayAd);
+
+        els.displayAd2Ins.setAttribute('data-ad-client', cfg.pubId);
+        els.displayAd2Ins.setAttribute('data-ad-slot', cfg.displaySlot);
+        els.displayAd2Placeholder.style.display = 'none';
+        ensureAdPushed(displayAd2);
+      }
+      if(cfg.videoSlot){
+        els.videoAdIns.setAttribute('data-ad-client', cfg.pubId);
+        els.videoAdIns.setAttribute('data-ad-slot', cfg.videoSlot);
+        els.videoAdPlaceholder.style.display = 'none';
+        ensureAdPushed(videoAd);
+      }
+      return true;
+    }).catch(function(err){
+      setAdsConnected(false);
+      if(!silent) setAdsStatus(err.message, false);
+      return false;
+    });
+  }
+
+  els.adsSettingsToggle.addEventListener('click', function(){
+    collapseAdsSettings(!els.adsSettingsBox.classList.contains('collapsed'));
+  });
+
+  els.adsSaveBtn.addEventListener('click', function(){
+    var pubId = els.adsPubIdInput.value.trim();
+    var displaySlot = els.adsDisplaySlotInput.value.trim();
+    var videoSlot = els.adsVideoSlotInput.value.trim();
+    if(!pubId){
+      setAdsStatus('Enter your AdSense Publisher ID (ca-pub-...).', false);
+      return;
+    }
+    saveAdsConfig({ pubId: pubId, displaySlot: displaySlot, videoSlot: videoSlot });
+    setAdsStatus('Connecting…', true);
+    initAds(false);
+  });
+
+  els.adsClearBtn.addEventListener('click', function(){
+    clearAdsConfig();
+    els.adsPubIdInput.value = '';
+    els.adsDisplaySlotInput.value = '';
+    els.adsVideoSlotInput.value = '';
+    setAdsConnected(false);
+    els.adsStatusMsg.style.display = 'none';
+    els.displayAdPlaceholder.style.display = 'block';
+    els.videoAdPlaceholder.style.display = 'block';
+    setAdsStatus('Cleared. Reload the page to fully remove any loaded ad script.', true);
+  });
+
+  /* ---------------- Search logic ---------------- */
+
+  function withTimeout(promise, ms, message){
+    return new Promise(function(resolve, reject){
+      var settled = false;
+      var timer = setTimeout(function(){
+        if(!settled){ settled = true; reject(new Error(message)); }
+      }, ms);
+      promise.then(function(val){
+        if(!settled){ settled = true; clearTimeout(timer); resolve(val); }
+      }, function(err){
+        if(!settled){ settled = true; clearTimeout(timer); reject(err); }
+      });
+    });
+  }
+
+  function metersRadius(){
+    return parseInt(els.radiusSelect.value, 10);
+  }
+
+  function geocodeZip(zip){
+    // Uses a free, keyless public lookup (zippopotam.us) — no Google dependency, no cost.
+    var cleanZip = zip.replace(/[^0-9]/g, '').slice(0, 5);
+    if(cleanZip.length !== 5){
+      return Promise.reject(new Error('Enter a valid 5-digit US zip code.'));
+    }
+    return fetch('https://api.zippopotam.us/us/' + cleanZip)
+      .then(function(resp){
+        if(resp.status === 404){
+          throw new Error('That zip code was not found. Double-check it and try again.');
+        }
+        if(!resp.ok){
+          throw new Error('Zip lookup service returned an error (HTTP ' + resp.status + ').');
+        }
+        return resp.json();
+      })
+      .then(function(data){
+        var place = data.places && data.places[0];
+        if(!place){
+          throw new Error('That zip code was not found. Double-check it and try again.');
+        }
+        return { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+      })
+      .catch(function(err){
+        if(err instanceof TypeError){
+          throw new Error('Could not reach the zip lookup service. Check your internet connection.');
+        }
+        throw err;
+      });
+  }
+
+  function getCurrentLocation(){
+    return new Promise(function(resolve, reject){
+      if(!navigator.geolocation){
+        reject(new Error('Geolocation is not supported by this browser.'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(function(pos){
+        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      }, function(err){
+        reject(new Error('Could not get your location: ' + err.message));
+      }, { enableHighAccuracy:true, timeout:10000 });
+    });
+  }
+
+  // Calls OUR OWN serverless proxy (/api/places-search) instead of Google directly —
+  // the Google API key lives only on the server (Vercel environment variable), never
+  // in this file or in the browser. See /api/places-search.js.
+  function nearbySearch(location, type, keyword){
+    var params = new URLSearchParams({
+      lat: location.lat,
+      lng: location.lng,
+      radius: metersRadius()
+    });
+    if(keyword){
+      params.set('keyword', keyword);
+    } else if(type){
+      params.set('type', type);
+    }
+
+    return fetch('/api/places-search?' + params.toString())
+      .then(function(resp){
+        return resp.json();
+      })
+      .then(function(data){
+        var status = data && data.status;
+        if(status === 'OK'){
+          return data.results || [];
+        } else if(status === 'ZERO_RESULTS'){
+          return [];
+        } else if(status === 'REQUEST_DENIED'){
+          throw new Error('Google denied this search (REQUEST_DENIED)' + (data.error_message ? ': ' + data.error_message : '') +
+            '. Check billing status and the API/Application restrictions on the server-side key in Cloud Console.');
+        } else if(status === 'OVER_QUERY_LIMIT'){
+          throw new Error('Hit the Places API quota/billing limit (OVER_QUERY_LIMIT).');
+        } else if(status === 'INVALID_REQUEST'){
+          throw new Error('Google rejected the search as malformed (INVALID_REQUEST). Try a different business type or radius.');
+        } else {
+          throw new Error((data && data.error_message) || ('Search failed with status: ' + status));
+        }
+      });
+  }
+
+  // "Recommended" score: a Bayesian-adjusted rating (the same approach IMDb/Amazon use),
+  // computed fresh per batch of results. A place's raw star rating gets pulled toward the
+  // batch average in proportion to how few reviews it has, so a 5.0 with 3 reviews doesn't
+  // outrank a 4.7 with 3,000 reviews — the "ratio of stars vs quantity of ratings" balances out.
+  //   score = (v / (v + m)) * R  +  (m / (v + m)) * C
+  //   R = place's rating, v = place's review count,
+  //   C = average rating across this batch, m = average review count across this batch.
+  function computeRecommendedScores(list){
+    var rated = list.filter(function(p){ return typeof p.rating === 'number'; });
+    if(rated.length === 0){
+      list.forEach(function(p){ p._recommendedScore = 0; });
+      return;
+    }
+    var totalRating = 0, totalReviews = 0;
+    rated.forEach(function(p){
+      totalRating += p.rating;
+      totalReviews += (p.user_ratings_total || 0);
+    });
+    var C = totalRating / rated.length;
+    var m = totalReviews / rated.length;
+    list.forEach(function(p){
+      var v = p.user_ratings_total || 0;
+      var R = typeof p.rating === 'number' ? p.rating : 0;
+      p._recommendedScore = (v + m) > 0 ? ((v / (v + m)) * R + (m / (v + m)) * C) : 0;
+    });
+  }
+
+  function sortResults(list, mode){
+    var m = mode || currentSortMode;
+    return list.slice().sort(function(a, b){
+      var ar = a.rating || 0, br = b.rating || 0;
+      var arc = a.user_ratings_total || 0, brc = b.user_ratings_total || 0;
+      if(m === 'recommended'){
+        return (b._recommendedScore || 0) - (a._recommendedScore || 0);
+      }
+      if(m === 'reviews'){
+        if(brc !== arc) return brc - arc;
+        return br - ar;
+      }
+      if(br !== ar) return br - ar;
+      return brc - arc;
+    });
+  }
+
+  function starsHtml(rating){
+    var r = Math.max(0, Math.min(5, rating || 0));
+    var pct = (r / 5) * 100;
+    return '<span class="stars">' +
+      '<span class="back">★★★★★</span>' +
+      '<span class="front" style="width:' + pct + '%">★★★★★</span>' +
+      '</span>';
+  }
+
+  function renderCard(place, index){
+    var name = escapeHtml(place.name || 'Unnamed business');
+    var address = escapeHtml(place.vicinity || place.formatted_address || 'Address unavailable');
+    var rating = place.rating;
+    var total = place.user_ratings_total;
+    var typeLabel = currentTypeLabel || els.typeSelect.options[els.typeSelect.selectedIndex].text;
+
+    var ratingBlock;
+    if(typeof rating === 'number'){
+      ratingBlock =
+        '<div class="rating-row">' +
+          starsHtml(rating) +
+          '<span class="rating-num">' + rating.toFixed(1) + '</span>' +
+          '<span class="review-count">(' + (total || 0).toLocaleString() + ' review' + ((total===1)?'':'s') + ')</span>' +
+        '</div>';
+    } else {
+      ratingBlock = '<div class="no-rating">No ratings yet</div>';
+    }
+
+    var openStatus = '';
+    if(place.opening_hours && typeof place.opening_hours.open_now === 'boolean'){
+      openStatus = place.opening_hours.open_now
+        ? '<span class="open-status open">Open now</span>'
+        : '<span class="open-status closed">Closed now</span>';
+    }
+
+    var recBlock = '';
+    if(currentSortMode === 'recommended' && typeof place._recommendedScore === 'number'){
+      recBlock = '<div class="rec-badge">🔥 Recommended ' + place._recommendedScore.toFixed(2) + '</div>';
+    }
+
+    // Google's documented Maps URL scheme for opening a specific place by place_id —
+    // no API key needed to follow this link, works on desktop and mobile.
+    var mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' +
+      encodeURIComponent(place.name || '') +
+      (place.place_id ? '&query_place_id=' + encodeURIComponent(place.place_id) : '');
+
+    var card = document.createElement('a');
+    card.className = 'card';
+    card.href = mapsUrl;
+    card.target = '_blank';
+    card.rel = 'noopener noreferrer';
+    card.innerHTML =
+      '<span class="rank">' + (index + 1) + '</span>' +
+      '<span class="type-badge">' + escapeHtml(typeLabel) + '</span>' +
+      '<h3>' + name + '</h3>' +
+      recBlock +
+      ratingBlock +
+      (openStatus ? '<div>' + openStatus + '</div>' : '') +
+      '<div class="address">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>' +
+        '<span>' + address + '</span>' +
+      '</div>' +
+      '<div class="maps-link">View on Google Maps →</div>';
+    return card;
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  var SORT_LABELS = {
+    rating: 'sorted by rating',
+    reviews: 'sorted by review count',
+    recommended: 'sorted by recommended score'
+  };
+
+  function renderResults(list, contextLabel){
+    lastResultsLabel = contextLabel;
+    els.resultsGrid.innerHTML = '';
+
+    if(list.length === 0){
+      els.resultsSection.style.display = 'none';
+      els.emptyState.style.display = 'block';
+      els.emptyState.querySelector('div:last-child').textContent = 'No businesses found for "' + contextLabel + '". Try a larger radius or different type.';
+      els.attribFooter.style.display = 'none';
+      return;
+    }
+
+    els.emptyState.style.display = 'none';
+    els.resultsSection.style.display = 'block';
+    els.resultsTitle.textContent = 'Results near ' + contextLabel;
+
+    var capped = list.slice(0, 20);
+    var showCount = showingAll ? capped.length : Math.min(10, capped.length);
+    var shown = capped.slice(0, showCount);
+
+    els.resultsCount.textContent = 'Showing ' + shown.length + ' of ' + capped.length + ' · ' +
+      (SORT_LABELS[currentSortMode] || SORT_LABELS.rating);
+
+    shown.forEach(function(place, i){
+      // Ad tiles take the #5 and #10 slots themselves (pushing those business cards one
+      // position later) rather than being inserted after them, so each fills a real grid
+      // cell instead of leaving an empty full-width row. Doesn't change which 10 (or 20)
+      // businesses are shown — only where they land visually.
+      if(i === 4){ els.resultsGrid.appendChild(videoAd.wrap); ensureAdPushed(videoAd); }
+      if(i === 9){ els.resultsGrid.appendChild(displayAd2.wrap); ensureAdPushed(displayAd2); }
+      els.resultsGrid.appendChild(renderCard(place, i));
+      if(i === 2){ els.resultsGrid.appendChild(displayAd.wrap); ensureAdPushed(displayAd); }   // banner after 3rd card
+    });
+
+    if(capped.length > 10){
+      var row = document.createElement('div');
+      row.className = 'show-more-row';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn secondary';
+      btn.textContent = showingAll
+        ? 'Show fewer ▴'
+        : 'Show ' + (capped.length - 10) + ' more (up to 20) ▾';
+      btn.addEventListener('click', function(){
+        showingAll = !showingAll;
+        renderResults(list, contextLabel);
+      });
+      row.appendChild(btn);
+      els.resultsGrid.appendChild(row);
+    }
+
+    els.attribFooter.style.display = 'block';
+  }
+
+  function setLoading(isLoading){
+    els.loadingState.style.display = isLoading ? 'block' : 'none';
+    if(isLoading){
+      els.resultsSection.style.display = 'none';
+      els.emptyState.style.display = 'none';
+      hideAllBanners();
+    }
+    els.searchBtn.disabled = isLoading;
+    els.gpsBtn.disabled = isLoading;
+  }
+
+  function runSearch(useGps){
+    hideAllBanners();
+
+    var selectedOption = els.typeSelect.options[els.typeSelect.selectedIndex];
+    var type = selectedOption.value;
+    // Some categories (Furniture, confirmed by testing) aren't reliably tagged with
+    // Google's matching "type" on real listings, while a plain keyword match on the
+    // name catches them. Options flagged with data-keyword run as a keyword search
+    // instead of a strict type filter.
+    var dropdownKeyword = selectedOption.getAttribute('data-keyword') || '';
+    var customType = els.customTypeInput.value.trim();
+    var effectiveKeyword = customType || dropdownKeyword;
+    currentTypeLabel = customType || selectedOption.text;
+    setLoading(true);
+
+    var locationPromise, label;
+    if(useGps){
+      label = 'your current location';
+      locationPromise = withTimeout(getCurrentLocation(), 15000,
+        'Timed out waiting for your location. Your browser may be blocking the location prompt — check the address bar for a permission icon.');
+    } else {
+      var zip = els.zipInput.value.trim();
+      if(!zip){
+        setLoading(false);
+        showBanner(els.errorBanner, 'Enter a zip code, or click "Use My Location".');
+        return;
+      }
+      label = 'zip code ' + zip;
+      locationPromise = withTimeout(geocodeZip(zip), 10000,
+        'The zip lookup service did not respond in time. Check your internet connection and try again.');
+    }
+
+    locationPromise
+      .then(function(location){
+        return withTimeout(nearbySearch(location, type, effectiveKeyword), 15000,
+          'The search server did not respond in time. Try again in a moment.');
+      })
+      .then(function(results){
+        computeRecommendedScores(results);
+        lastRawResults = results;
+        lastResultsLabel = label;
+        showingAll = false;
+        setLoading(false);
+        renderResults(sortResults(results), label);
+      })
+      .catch(function(err){
+        setLoading(false);
+        showBanner(els.errorBanner, err.message || 'Something went wrong while searching.');
+      });
+  }
+
+  els.searchBtn.addEventListener('click', function(){ runSearch(false); });
+  els.zipInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') runSearch(false);
+  });
+  els.customTypeInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') runSearch(false);
+  });
+  els.gpsBtn.addEventListener('click', function(){ runSearch(true); });
+
+  Array.prototype.forEach.call(els.sortButtons.querySelectorAll('.sort-btn'), function(btn){
+    btn.addEventListener('click', function(){
+      currentSortMode = btn.getAttribute('data-sort');
+      Array.prototype.forEach.call(els.sortButtons.querySelectorAll('.sort-btn'), function(b){
+        b.classList.toggle('active', b === btn);
+      });
+      showingAll = false;
+      if(lastRawResults.length){
+        renderResults(sortResults(lastRawResults), lastResultsLabel);
+      }
+    });
+  });
+
+  /* ---------------- Init ---------------- */
+
+  (function init(){
+    var adsCfg = getAdsConfig();
+    if(adsCfg.pubId){
+      els.adsPubIdInput.value = adsCfg.pubId;
+      els.adsDisplaySlotInput.value = adsCfg.displaySlot;
+      els.adsVideoSlotInput.value = adsCfg.videoSlot;
+      initAds(true).then(function(ok){
+        collapseAdsSettings(!!ok);
+      });
+    } else {
+      setAdsConnected(false);
+      collapseAdsSettings(true);
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>
