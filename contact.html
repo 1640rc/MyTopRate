@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact — MyTopRate</title>
+<style>
+  :root{
+    --accent:#4f46e5;
+    --accent-dark:#4338ca;
+    --accent-light:#eef0fe;
+    --bg:#f4f5f9;
+    --card-bg:#ffffff;
+    --text:#1f2330;
+    --text-muted:#6b7280;
+    --border:#e5e7eb;
+    --radius:14px;
+    --shadow:0 1px 3px rgba(20,20,43,.06), 0 8px 24px rgba(20,20,43,.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, #eef0ff 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, #f0fdfa 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:32px 20px 60px;}
+  .home-link{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--accent);text-decoration:none;font-weight:600;font-size:.92rem;
+    margin-bottom:18px;
+  }
+  .home-link:hover{text-decoration:underline;}
+  h1{
+    font-size:1.9rem;margin:0 0 6px;
+    background:linear-gradient(135deg,var(--accent),#7c3aed);
+    -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;
+  }
+  .updated{color:var(--text-muted);font-size:.85rem;margin-bottom:28px;}
+  .card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:28px 32px;
+  }
+  h2{font-size:1.15rem;margin:28px 0 10px;color:var(--text);}
+  h2:first-child{margin-top:0;}
+  p{line-height:1.65;color:var(--text);margin:0 0 14px;}
+  ul{line-height:1.65;color:var(--text);margin:0 0 14px;padding-left:22px;}
+  li{margin-bottom:6px;}
+  a{color:var(--accent);}
+  .placeholder{
+    background:#fffbeb;border:1px solid #fde68a;color:#92400e;
+    padding:2px 6px;border-radius:6px;font-size:.85em;font-weight:600;
+  }
+  .contact-box{
+    background:var(--accent-light);border:1px solid #d9dcfb;border-radius:10px;
+    padding:16px 20px;margin:0 0 14px;
+  }
+  .contact-box a{font-weight:700;}
+  footer{
+    text-align:center;margin-top:30px;color:var(--text-muted);font-size:.82rem;
+  }
+  footer a{color:var(--text-muted);text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home-link" href="/">← Back to MyTopRate</a>
+  <h1>Contact</h1>
+
+  <div class="card">
+    <h2>Get in touch</h2>
+    <p>
+      MyTopRate is run by a small, independent team, so email is the best way to reach us:
+    </p>
+    <div class="contact-box">
+      <a href="mailto:1640rc@gmail.com">1640rc@gmail.com</a>
+    </div>
+    <p>
+      We read every message and try to reply within a few business days.
+    </p>
+
+    <h2>What to contact us about</h2>
+    <ul>
+      <li><strong>Incorrect or outdated business info</strong> — ratings, hours, and addresses
+        come directly from Google, so corrections are usually fastest made on the business's own
+        Google Business Profile. If something looks broken on our end specifically, let us
+        know.</li>
+      <li><strong>Bugs or something not working</strong> — tell us what you searched, what
+        device/browser you're on, and what happened.</li>
+      <li><strong>Privacy or Terms questions</strong> — see the
+        <a href="/privacy.html">Privacy Policy</a> and
+        <a href="/terms.html">Terms of Service</a> first; email us if something's still
+        unclear.</li>
+      <li><strong>Advertising or partnership inquiries.</strong></li>
+    </ul>
+
+    <h2>Response time</h2>
+    <p>
+      This isn't a staffed support line, so please allow a few days for a reply, especially for
+      non-urgent requests.
+    </p>
+  </div>
+
+  <footer>
+    <a href="/">Home</a> · <a href="/about.html">About</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Service</a>
+  </footer>
+</div>
+</body>
+</html>
