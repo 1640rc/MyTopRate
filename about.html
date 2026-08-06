@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About Us — MyTopRate</title>
+<style>
+  :root{
+    --accent:#4f46e5;
+    --accent-dark:#4338ca;
+    --accent-light:#eef0fe;
+    --bg:#f4f5f9;
+    --card-bg:#ffffff;
+    --text:#1f2330;
+    --text-muted:#6b7280;
+    --border:#e5e7eb;
+    --radius:14px;
+    --shadow:0 1px 3px rgba(20,20,43,.06), 0 8px 24px rgba(20,20,43,.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, #eef0ff 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, #f0fdfa 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:32px 20px 60px;}
+  .home-link{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--accent);text-decoration:none;font-weight:600;font-size:.92rem;
+    margin-bottom:18px;
+  }
+  .home-link:hover{text-decoration:underline;}
+  h1{
+    font-size:1.9rem;margin:0 0 6px;
+    background:linear-gradient(135deg,var(--accent),#7c3aed);
+    -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;
+  }
+  .updated{color:var(--text-muted);font-size:.85rem;margin-bottom:28px;}
+  .card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:28px 32px;
+  }
+  h2{font-size:1.15rem;margin:28px 0 10px;color:var(--text);}
+  h2:first-child{margin-top:0;}
+  p{line-height:1.65;color:var(--text);margin:0 0 14px;}
+  ul{line-height:1.65;color:var(--text);margin:0 0 14px;padding-left:22px;}
+  li{margin-bottom:6px;}
+  a{color:var(--accent);}
+  .placeholder{
+    background:#fffbeb;border:1px solid #fde68a;color:#92400e;
+    padding:2px 6px;border-radius:6px;font-size:.85em;font-weight:600;
+  }
+  footer{
+    text-align:center;margin-top:30px;color:var(--text-muted);font-size:.82rem;
+  }
+  footer a{color:var(--text-muted);text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home-link" href="/">← Back to MyTopRate</a>
+  <h1>About Us</h1>
+
+  <div class="card">
+    <h2>What MyTopRate is</h2>
+    <p>
+      MyTopRate is a free tool for finding the highest-rated businesses near you. Type in a zip
+      code or share your location, pick a business type, and it pulls back nearby results sorted
+      by Google rating, review count, or a blended "Recommended" score — so you don't have to dig
+      through a map full of pins to find the place people actually vouch for.
+    </p>
+
+    <h2>Why it exists</h2>
+    <p>
+      The idea started from a simple frustration: standard map searches are sorted by distance or
+      relevance, not by quality. Often the best-reviewed spot in an area is buried a few results
+      down. MyTopRate exists to flip that — rating and reputation first, distance second.
+    </p>
+
+    <h2>Who's behind it</h2>
+    <p>
+      MyTopRate is built and maintained by a single developer,
+      <span class="placeholder">Roberto</span>, based in
+      <span class="placeholder">Florida</span>. It's an independent, self-funded project — not
+      backed by a company or a data broker. All the business data shown comes directly from
+      Google; MyTopRate itself doesn't collect or sell information about the businesses or the
+      people searching for them (see the
+      <a href="/privacy.html">Privacy Policy</a> for details).
+    </p>
+
+    <h2>How it stays free</h2>
+    <p>
+      The site is free to use and may be supported by advertising. Displaying an ad for a
+      business doesn't mean MyTopRate has vetted or endorsed it — see the
+      <a href="/terms.html">Terms of Service</a> for how that works.
+    </p>
+
+    <h2>Get in touch</h2>
+    <p>
+      Questions, feedback, or spotted an issue with a listing? Visit the
+      <a href="/contact.html">Contact page</a>.
+    </p>
+  </div>
+
+  <footer>
+    <a href="/">Home</a> · <a href="/about.html">About</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Service</a>
+  </footer>
+</div>
+</body>
+</html>
