@@ -256,6 +256,26 @@
     background:var(--accent);border-color:var(--accent);color:#fff;
   }
 
+  .cuisine-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .cuisine-chip{
+    padding:7px 14px;border-radius:999px;border:1px solid var(--border);
+    background:#fff;color:var(--text-muted);font-size:.85rem;font-weight:600;
+    cursor:pointer;transition:background .15s, color .15s, border-color .15s;
+  }
+  .cuisine-chip:hover{background:#f3f4f6;}
+  .cuisine-chip.active{
+    background:var(--accent);border-color:var(--accent);color:#fff;
+  }
+
+  .open-now-toggle{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:8px 14px;border-radius:999px;border:1px solid var(--border);
+    background:#fff;color:var(--text);font-size:.85rem;font-weight:600;
+    cursor:pointer;user-select:none;margin-left:auto;
+  }
+  .open-now-toggle input{cursor:pointer;}
+  .distance-badge{color:var(--text-muted);font-size:.78rem;font-weight:600;white-space:nowrap;}
+
   .show-more-row{grid-column:1/-1;text-align:center;padding:10px 0 4px;}
 
   .grid{
@@ -494,6 +514,32 @@
         <option value="shopping_mall">Shopping</option>
       </select>
     </div>
+    <div class="field" id="cuisineField" style="display:none;flex-basis:100%;">
+      <label>Cuisine</label>
+      <div class="cuisine-chips" id="cuisineChips" role="group" aria-label="Filter by cuisine">
+        <button type="button" class="cuisine-chip active" data-cuisine="">All</button>
+        <button type="button" class="cuisine-chip" data-cuisine="french restaurant">French</button>
+        <button type="button" class="cuisine-chip" data-cuisine="italian restaurant">Italian</button>
+        <button type="button" class="cuisine-chip" data-cuisine="mexican restaurant">Mexican</button>
+        <button type="button" class="cuisine-chip" data-cuisine="chinese restaurant">Chinese</button>
+        <button type="button" class="cuisine-chip" data-cuisine="japanese restaurant">Japanese</button>
+        <button type="button" class="cuisine-chip" data-cuisine="sushi restaurant">Sushi</button>
+        <button type="button" class="cuisine-chip" data-cuisine="thai restaurant">Thai</button>
+        <button type="button" class="cuisine-chip" data-cuisine="indian restaurant">Indian</button>
+        <button type="button" class="cuisine-chip" data-cuisine="mediterranean restaurant">Mediterranean</button>
+        <button type="button" class="cuisine-chip" data-cuisine="greek restaurant">Greek</button>
+        <button type="button" class="cuisine-chip" data-cuisine="spanish restaurant">Spanish</button>
+        <button type="button" class="cuisine-chip" data-cuisine="vietnamese restaurant">Vietnamese</button>
+        <button type="button" class="cuisine-chip" data-cuisine="korean restaurant">Korean</button>
+        <button type="button" class="cuisine-chip" data-cuisine="middle eastern restaurant">Middle Eastern</button>
+        <button type="button" class="cuisine-chip" data-cuisine="american restaurant">American</button>
+        <button type="button" class="cuisine-chip" data-cuisine="steakhouse">Steakhouse</button>
+        <button type="button" class="cuisine-chip" data-cuisine="seafood restaurant">Seafood</button>
+        <button type="button" class="cuisine-chip" data-cuisine="pizza restaurant">Pizza</button>
+        <button type="button" class="cuisine-chip" data-cuisine="bbq restaurant">BBQ</button>
+        <button type="button" class="cuisine-chip" data-cuisine="vegan restaurant">Vegan / Vegetarian</button>
+      </div>
+    </div>
     <div class="field">
       <label for="customTypeInput">Or Type Your Own</label>
       <input type="text" id="customTypeInput" placeholder="e.g., vegan bakery, pet groomer" autocomplete="off" />
@@ -523,6 +569,10 @@
       <button type="button" class="sort-btn active" data-sort="rating">★ Top Rated</button>
       <button type="button" class="sort-btn" data-sort="reviews">💬 Most Reviewed</button>
       <button type="button" class="sort-btn" data-sort="recommended">🔥 Recommended</button>
+      <button type="button" class="sort-btn" data-sort="distance">📍 Nearest</button>
+      <label class="open-now-toggle">
+        <input type="checkbox" id="openNowToggle" /> Open now only
+      </label>
     </div>
     <div class="grid" id="resultsGrid"></div>
   </div>
@@ -560,9 +610,12 @@
     zipInput: document.getElementById('zipInput'),
     gpsBtn: document.getElementById('gpsBtn'),
     typeSelect: document.getElementById('typeSelect'),
+    cuisineField: document.getElementById('cuisineField'),
+    cuisineChips: document.getElementById('cuisineChips'),
     customTypeInput: document.getElementById('customTypeInput'),
     radiusSelect: document.getElementById('radiusSelect'),
     sortButtons: document.getElementById('sortButtons'),
+    openNowToggle: document.getElementById('openNowToggle'),
     searchBtn: document.getElementById('searchBtn'),
     resultsSection: document.getElementById('resultsSection'),
     resultsTitle: document.getElementById('resultsTitle'),
@@ -587,6 +640,7 @@
   var currentSortMode = 'rating';
   var currentTypeLabel = ''; // label shown on cards' type badge for the last search actually run
   var showingAll = false; // false = top 10 shown, true = up to 20 shown
+  var selectedCuisine = ''; // data-cuisine value of the active chip; '' = All
 
   /* ---------------- Ad blocks (built once, moved into the grid on render) ---------------- */
 
@@ -924,11 +978,42 @@
     });
   }
 
+  // Distance from the searched location to each result, computed client-side from the
+  // lat/lng Google already returns in geometry.location — no extra API call, no geocoding
+  // beyond the one lookup already done for the search itself.
+  var EARTH_RADIUS_MILES = 3958.8;
+  function toRad(deg){ return deg * Math.PI / 180; }
+  function haversineMiles(lat1, lng1, lat2, lng2){
+    var dLat = toRad(lat2 - lat1);
+    var dLng = toRad(lng2 - lng1);
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return EARTH_RADIUS_MILES * c;
+  }
+  function computeDistances(list, origin){
+    if(!origin) return;
+    list.forEach(function(p){
+      var loc = p.geometry && p.geometry.location;
+      if(loc && typeof loc.lat === 'number' && typeof loc.lng === 'number'){
+        p._distanceMiles = haversineMiles(origin.lat, origin.lng, loc.lat, loc.lng);
+      } else {
+        p._distanceMiles = null;
+      }
+    });
+  }
+
   function sortResults(list, mode){
     var m = mode || currentSortMode;
     return list.slice().sort(function(a, b){
       var ar = a.rating || 0, br = b.rating || 0;
       var arc = a.user_ratings_total || 0, brc = b.user_ratings_total || 0;
+      if(m === 'distance'){
+        var ad = typeof a._distanceMiles === 'number' ? a._distanceMiles : Infinity;
+        var bd = typeof b._distanceMiles === 'number' ? b._distanceMiles : Infinity;
+        return ad - bd;
+      }
       if(m === 'recommended'){
         return (b._recommendedScore || 0) - (a._recommendedScore || 0);
       }
@@ -939,6 +1024,16 @@
       if(br !== ar) return br - ar;
       return brc - arc;
     });
+  }
+
+  function getFilteredSortedResults(){
+    var list = lastRawResults;
+    if(els.openNowToggle.checked){
+      list = list.filter(function(p){
+        return p.opening_hours && p.opening_hours.open_now === true;
+      });
+    }
+    return sortResults(list);
   }
 
   function starsHtml(rating){
@@ -976,6 +1071,14 @@
         : '<span class="open-status closed">Closed now</span>';
     }
 
+    var distanceBadge = '';
+    if(typeof place._distanceMiles === 'number'){
+      var milesText = place._distanceMiles < 0.1
+        ? 'under 0.1 mi'
+        : place._distanceMiles.toFixed(1) + ' mi';
+      distanceBadge = '<span class="distance-badge">' + milesText + ' away</span>';
+    }
+
     var recBlock = '';
     if(currentSortMode === 'recommended' && typeof place._recommendedScore === 'number'){
       recBlock = '<div class="rec-badge">🔥 Recommended ' + place._recommendedScore.toFixed(2) + '</div>';
@@ -998,7 +1101,9 @@
       '<h3>' + name + '</h3>' +
       recBlock +
       ratingBlock +
-      (openStatus ? '<div>' + openStatus + '</div>' : '') +
+      (openStatus || distanceBadge
+        ? '<div style="display:flex;align-items:center;gap:8px;">' + openStatus + distanceBadge + '</div>'
+        : '') +
       '<div class="address">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>' +
         '<span>' + address + '</span>' +
@@ -1016,7 +1121,8 @@
   var SORT_LABELS = {
     rating: 'sorted by rating',
     reviews: 'sorted by review count',
-    recommended: 'sorted by recommended score'
+    recommended: 'sorted by recommended score',
+    distance: 'sorted by distance'
   };
 
   function renderResults(list, contextLabel){
@@ -1026,7 +1132,9 @@
     if(list.length === 0){
       els.resultsSection.style.display = 'none';
       els.emptyState.style.display = 'block';
-      els.emptyState.querySelector('div:last-child').textContent = 'No businesses found for "' + contextLabel + '". Try a larger radius or different type.';
+      els.emptyState.querySelector('div:last-child').textContent = els.openNowToggle.checked
+        ? 'No open businesses found for "' + contextLabel + '" right now. Try unchecking "Open now only" or a larger radius.'
+        : 'No businesses found for "' + contextLabel + '". Try a larger radius or different type.';
       els.attribFooter.style.display = 'none';
       return;
     }
@@ -1097,6 +1205,16 @@
     var customType = els.customTypeInput.value.trim();
     var effectiveKeyword = customType || dropdownKeyword;
     currentTypeLabel = customType || selectedOption.text;
+
+    // Cuisine sub-filter (only relevant when Business Type = Restaurants and the
+    // user hasn't typed a custom override). Reuses the same keyword-search path
+    // already used for the Furniture/Mattress workarounds above — no new API cost,
+    // same single Nearby Search call, just a more specific keyword.
+    if (!customType && selectedCuisine) {
+      var activeChip = els.cuisineChips.querySelector('.cuisine-chip.active');
+      effectiveKeyword = selectedCuisine;
+      currentTypeLabel = (activeChip ? activeChip.textContent : 'Cuisine') + ' Restaurants';
+    }
     setLoading(true);
 
     var locationPromise, label;
@@ -1116,24 +1234,52 @@
         'The zip lookup service did not respond in time. Check your internet connection and try again.');
     }
 
+    var searchOrigin = null;
     locationPromise
       .then(function(location){
+        searchOrigin = location;
         return withTimeout(nearbySearch(location, type, effectiveKeyword), 15000,
           'The search server did not respond in time. Try again in a moment.');
       })
       .then(function(results){
         computeRecommendedScores(results);
+        computeDistances(results, searchOrigin);
         lastRawResults = results;
         lastResultsLabel = label;
         showingAll = false;
         setLoading(false);
-        renderResults(sortResults(results), label);
+        renderResults(getFilteredSortedResults(), label);
       })
       .catch(function(err){
         setLoading(false);
         showBanner(els.errorBanner, err.message || 'Something went wrong while searching.');
       });
   }
+
+  function resetCuisineChips(){
+    selectedCuisine = '';
+    Array.prototype.forEach.call(els.cuisineChips.querySelectorAll('.cuisine-chip'), function(b){
+      b.classList.toggle('active', b.getAttribute('data-cuisine') === '');
+    });
+  }
+
+  function updateCuisineVisibility(){
+    var selectedOption = els.typeSelect.options[els.typeSelect.selectedIndex];
+    var isPlainRestaurant = selectedOption.value === 'restaurant' && !selectedOption.getAttribute('data-keyword');
+    els.cuisineField.style.display = isPlainRestaurant ? '' : 'none';
+    if (!isPlainRestaurant) resetCuisineChips();
+  }
+
+  Array.prototype.forEach.call(els.cuisineChips.querySelectorAll('.cuisine-chip'), function(btn){
+    btn.addEventListener('click', function(){
+      selectedCuisine = btn.getAttribute('data-cuisine');
+      Array.prototype.forEach.call(els.cuisineChips.querySelectorAll('.cuisine-chip'), function(b){
+        b.classList.toggle('active', b === btn);
+      });
+    });
+  });
+  els.typeSelect.addEventListener('change', updateCuisineVisibility);
+  updateCuisineVisibility();
 
   els.searchBtn.addEventListener('click', function(){ runSearch(false); });
   els.zipInput.addEventListener('keydown', function(e){
@@ -1152,9 +1298,16 @@
       });
       showingAll = false;
       if(lastRawResults.length){
-        renderResults(sortResults(lastRawResults), lastResultsLabel);
+        renderResults(getFilteredSortedResults(), lastResultsLabel);
       }
     });
+  });
+
+  els.openNowToggle.addEventListener('change', function(){
+    showingAll = false;
+    if(lastRawResults.length){
+      renderResults(getFilteredSortedResults(), lastResultsLabel);
+    }
   });
 
   /* ---------------- Init ---------------- */
