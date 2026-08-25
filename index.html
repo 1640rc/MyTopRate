@@ -643,6 +643,8 @@
   var currentTypeLabel = ''; // label shown on cards' type badge for the last search actually run
   var showingAll = false; // false = top 10 shown, true = up to 20 shown
   var selectedCuisine = ''; // data-cuisine value of the active chip; '' = All
+  var lastRadiusMiles = 5; // the radius the last search was run with, used to filter the
+                            // distance-ranked results Google returns (see getFilteredSortedResults)
 
   /* ---------------- Ad blocks (built once, moved into the grid on render) ---------------- */
 
@@ -1030,6 +1032,13 @@
 
   function getFilteredSortedResults(){
     var list = lastRawResults;
+    // Google is now queried with rankby=distance (the actual nearest matches, not
+    // prominence-ranked ones — see places-search.js), which doesn't accept a radius
+    // param at all. So the mile radius the user picked is enforced here instead, using
+    // the distance already computed for each result in computeDistances().
+    list = list.filter(function(p){
+      return typeof p._distanceMiles === 'number' && p._distanceMiles <= lastRadiusMiles;
+    });
     if(els.openNowToggle.checked){
       list = list.filter(function(p){
         return p.opening_hours && p.opening_hours.open_now === true;
@@ -1237,6 +1246,7 @@
     }
 
     var searchOrigin = null;
+    lastRadiusMiles = metersRadius() / 1609.344;
     locationPromise
       .then(function(location){
         searchOrigin = location;
