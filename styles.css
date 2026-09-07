@@ -1,0 +1,159 @@
+/* ============================================================================
+   MyTopRate — shared styles for all content pages
+   (guides, about, contact, privacy, terms)
+
+   FILE LOCATION: repo root, alongside index.html  ->  mytoprate.app/styles.css
+   Linked from each page with:  <link rel="stylesheet" href="/styles.css" />
+
+   The homepage (index.html) keeps its own inline styles because it has a lot of
+   app-specific UI (search controls, result cards, ad slots) that no other page
+   needs. Everything else shares this file, so a design change happens once here
+   instead of being pasted into every article.
+   ========================================================================= */
+
+:root{
+  --accent:#4f46e5;
+  --accent-dark:#4338ca;
+  --accent-light:#eef0fe;
+  --bg:#f4f5f9;
+  --card-bg:#ffffff;
+  --text:#1f2330;
+  --text-muted:#6b7280;
+  --border:#e5e7eb;
+  --radius:14px;
+  --shadow:0 1px 3px rgba(20,20,43,.06), 0 8px 24px rgba(20,20,43,.06);
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, #eef0ff 0%, transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, #f0fdfa 0%, transparent 55%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+}
+
+.wrap{max-width:760px;margin:0 auto;padding:32px 20px 60px;}
+.wrap.wide{max-width:960px;}
+
+/* ---------- Navigation ---------- */
+.home-link{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--accent);text-decoration:none;font-weight:600;font-size:.92rem;
+  margin-bottom:18px;
+}
+.home-link:hover{text-decoration:underline;}
+
+/* ---------- Headings ---------- */
+h1{
+  font-size:1.9rem;margin:0 0 6px;
+  background:linear-gradient(135deg,var(--accent),#7c3aed);
+  -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;
+  line-height:1.25;
+}
+.page-sub{color:var(--text-muted);font-size:1rem;margin:0 0 28px;line-height:1.5;}
+.updated{color:var(--text-muted);font-size:.85rem;margin-bottom:28px;}
+
+/* ---------- Cards / prose ---------- */
+.card{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:28px 32px;
+}
+h2{font-size:1.2rem;margin:32px 0 10px;color:var(--text);}
+h2:first-child{margin-top:0;}
+h3{font-size:1rem;margin:22px 0 8px;color:var(--text);}
+p{line-height:1.7;color:var(--text);margin:0 0 15px;}
+ul,ol{line-height:1.7;color:var(--text);margin:0 0 15px;padding-left:22px;}
+li{margin-bottom:8px;}
+a{color:var(--accent);}
+strong{font-weight:700;}
+
+.placeholder{
+  background:#fffbeb;border:1px solid #fde68a;color:#92400e;
+  padding:2px 6px;border-radius:6px;font-size:.85em;font-weight:600;
+}
+
+/* ---------- Article extras ---------- */
+.lede{font-size:1.05rem;line-height:1.7;color:var(--text);margin:0 0 20px;}
+
+.callout{
+  background:var(--accent-light);border:1px solid #d9dcfb;border-radius:10px;
+  padding:16px 20px;margin:0 0 18px;
+}
+.callout p:last-child{margin-bottom:0;}
+.callout .callout-label{
+  font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent-dark);font-weight:800;margin-bottom:6px;
+}
+
+table{
+  width:100%;border-collapse:collapse;margin:0 0 18px;font-size:.92rem;
+}
+th,td{
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);
+}
+th{color:var(--text-muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;}
+tbody tr:last-child td{border-bottom:none;}
+td.num{font-variant-numeric:tabular-nums;}
+
+.takeaway{
+  border-left:3px solid var(--accent);background:#fafaff;
+  padding:14px 18px;margin:0 0 18px;border-radius:0;
+}
+.takeaway p{margin:0;font-size:.95rem;}
+
+.cta-row{
+  margin-top:28px;padding-top:22px;border-top:1px solid var(--border);
+}
+.btn-primary{
+  display:inline-block;background:var(--accent);color:#fff;text-decoration:none;
+  font-weight:700;font-size:.92rem;padding:11px 20px;border-radius:10px;
+}
+.btn-primary:hover{background:var(--accent-dark);}
+
+/* ---------- Contact page ---------- */
+.contact-box{
+  background:var(--accent-light);border:1px solid #d9dcfb;border-radius:10px;
+  padding:16px 20px;margin:0 0 14px;
+}
+.contact-box a{font-weight:700;}
+
+/* ---------- Guide index listing ---------- */
+.guide-list{display:flex;flex-direction:column;gap:14px;}
+.guide-item{
+  display:block;text-decoration:none;color:inherit;
+  background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:20px 24px;
+  transition:transform .15s, box-shadow .15s;
+}
+.guide-item:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 10px rgba(20,20,43,.08), 0 14px 30px rgba(20,20,43,.10);
+}
+.guide-item h2{font-size:1.05rem;margin:0 0 6px;color:var(--text);}
+.guide-item p{font-size:.9rem;color:var(--text-muted);margin:0;line-height:1.55;}
+.guide-meta{
+  font-size:.75rem;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.05em;font-weight:700;margin-bottom:8px;
+}
+
+/* ---------- Footer ---------- */
+footer.site-footer{
+  text-align:center;margin-top:36px;color:var(--text-muted);font-size:.82rem;
+  line-height:2;
+}
+footer.site-footer a{color:var(--text-muted);text-decoration:underline;}
+footer.site-footer a:hover{color:var(--accent);}
+
+/* ---------- Mobile ---------- */
+@media (max-width:640px){
+  .wrap{padding:20px 14px 44px;}
+  .card{padding:20px 18px;}
+  h1{font-size:1.5rem;}
+  table{font-size:.85rem;}
+  th,td{padding:8px 8px;}
+}
