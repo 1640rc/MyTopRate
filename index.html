@@ -166,6 +166,15 @@
   }
   .how-step h3{font-size:.98rem;margin:0 0 6px;}
   .how-step p{font-size:.88rem;color:var(--text-muted);line-height:1.55;margin:0;}
+  .guide-links{display:flex;flex-direction:column;gap:10px;}
+  .guide-links a{
+    display:block;text-decoration:none;color:inherit;
+    border:1px solid var(--border);border-radius:10px;padding:14px 16px;
+    transition:border-color .15s, background .15s;
+  }
+  .guide-links a:hover{border-color:var(--accent);background:#fafaff;}
+  .guide-links strong{display:block;font-size:.95rem;color:var(--text);margin-bottom:4px;}
+  .guide-links span{display:block;font-size:.86rem;color:var(--text-muted);line-height:1.55;}
   .faq-item{border-top:1px solid var(--border);padding:14px 0;}
   .faq-item:first-of-type{border-top:none;padding-top:0;}
   .faq-item h3{font-size:.95rem;margin:0 0 6px;color:var(--text);}
@@ -640,6 +649,38 @@
   </div>
 
   <div class="info-section">
+    <h2>Guides</h2>
+    <p style="font-size:.9rem;color:var(--text-muted);line-height:1.6;margin:0 0 14px;">
+      Star ratings are easy to get fooled by. Short, practical guides to reading them properly.
+    </p>
+    <div class="guide-links">
+      <a href="/guides/star-rating-vs-review-count.html">
+        <strong>Why a 4.7 Is Usually Better Than a 5.0</strong>
+        <span>That perfect 5.0 probably just has three reviews. How to tell which ratings you can actually trust.</span>
+      </a>
+      <a href="/guides/reading-the-rating-breakdown.html">
+        <strong>The Little Bar Chart Tells You More Than the Rating</strong>
+        <span>Two places can both average 4.3 and be nothing alike. The breakdown shows which is a gamble.</span>
+      </a>
+      <a href="/guides/how-to-spot-fake-reviews.html">
+        <strong>How to Spot a Fake Review in About 30 Seconds</strong>
+        <span>Fake reviews are lazy, and lazy work leaves fingerprints. The tells to look for.</span>
+      </a>
+      <a href="/guides/closest-isnt-best.html">
+        <strong>The Closest Place Is Rarely the Best One</strong>
+        <span>Nobody decided the nearest place was good. It just happens to be close.</span>
+      </a>
+      <a href="/guides/choosing-mechanics-dentists-plumbers.html">
+        <strong>Picking a Mechanic or Dentist From Reviews</strong>
+        <span>Service reviews follow completely different rules than restaurant reviews.</span>
+      </a>
+    </div>
+    <p style="font-size:.88rem;margin:14px 0 0;">
+      <a href="/guides/">See all 10 guides →</a>
+    </p>
+  </div>
+
+  <div class="info-section">
     <h2>Frequently asked questions</h2>
     <div class="faq-item">
       <h3>Is MyTopRate free to use?</h3>
@@ -673,7 +714,7 @@
   </footer>
 
   <footer class="site-footer">
-    <a href="/about.html">About</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Service</a>
+    <a href="/guides/">Guides</a> · <a href="/about.html">About</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Service</a>
   </footer>
 
 </div>
