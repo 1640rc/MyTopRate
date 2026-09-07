@@ -8,6 +8,17 @@
 // Required setup (do this in the Vercel dashboard, not in this file):
 //   Project -> Settings -> Environment Variables -> add GOOGLE_PLACES_API_KEY
 // Never paste the real key into this file or into version control.
+//
+// Ranking: this uses Google's default "prominence" ranking with an explicit radius.
+// An earlier revision tried rankby=distance to fix a bug where a well-known restaurant
+// didn't appear in a search from inside that very restaurant. That didn't fix it, and
+// distance ranking has its own failure mode: it returns only the 20 *nearest* matches,
+// so in a dense downtown a 5,000-review landmark can be crowded out by 20 tiny places
+// that happen to sit a few feet closer. Prominence weights ratings and review volume,
+// which is what this app is actually for ("best-rated near you"), and the client still
+// offers a Nearest sort over whatever comes back. The real cause of that bug was almost
+// certainly the strict type= filter, which is why the frontend now searches restaurants
+// by keyword instead of by type (see the data-keyword attribute in index.html).
 
 const MAX_RADIUS_METERS = 40234; // 25 miles — matches the app's largest radius option
 const DEFAULT_RADIUS_METERS = 8047; // 5 miles
@@ -67,7 +78,7 @@ module.exports = async function handler(req, res) {
     const googleRes = await fetch('https://maps.googleapis.com/maps/api/place/nearbysearch/json?' + params.toString());
     const data = await googleRes.json();
 
-    // Short edge cache: identical searches (same location/radius/type) within this
+    // Short edge cache: identical searches (same location/type/keyword) within this
     // window are served from Vercel's cache instead of hitting Google again — cuts
     // cost on repeat/bot traffic without staling results meaningfully.
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
