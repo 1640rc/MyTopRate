@@ -141,6 +141,36 @@
   }
   .btn.secondary:hover{background:#f3f4f6;}
   .btn:disabled{opacity:.55;cursor:not-allowed;}
+  /* ---------- Static info content (always present, not gated behind a search —
+     required so the page has real content on first load, not just an empty form) ---------- */
+  .info-section{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px 28px;
+    margin:32px 0;
+  }
+  .info-section h2{font-size:1.2rem;margin:0 0 16px;color:var(--text);}
+  .info-section + .info-section{margin-top:0;}
+  .how-steps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+    gap:18px;
+  }
+  .how-step .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:50%;
+    background:var(--accent-light);color:var(--accent);
+    font-weight:800;font-size:.85rem;margin-bottom:8px;
+  }
+  .how-step h3{font-size:.98rem;margin:0 0 6px;}
+  .how-step p{font-size:.88rem;color:var(--text-muted);line-height:1.55;margin:0;}
+  .faq-item{border-top:1px solid var(--border);padding:14px 0;}
+  .faq-item:first-of-type{border-top:none;padding-top:0;}
+  .faq-item h3{font-size:.95rem;margin:0 0 6px;color:var(--text);}
+  .faq-item p{font-size:.88rem;color:var(--text-muted);line-height:1.6;margin:0;}
+
   .settings-note{
     width:100%;
     font-size:.8rem;
@@ -497,7 +527,7 @@
     <div class="field">
       <label for="typeSelect">Business Type</label>
       <select id="typeSelect">
-        <option value="restaurant">Restaurants</option>
+        <option value="restaurant" data-keyword="restaurant">Restaurants</option>
         <option value="cafe">Cafes</option>
         <option value="gym">Gyms</option>
         <option value="car_repair">Mechanics / Auto Repair</option>
@@ -586,6 +616,56 @@
   <div class="empty-state" id="emptyState">
     <div class="big">🔎</div>
     <div>Enter a zip code or use your location to find highly-rated businesses nearby.</div>
+  </div>
+
+  <div class="info-section">
+    <h2>How MyTopRate works</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="num">1</div>
+        <h3>Tell us where</h3>
+        <p>Enter a zip code, or share your location with one tap — nothing is stored either way.</p>
+      </div>
+      <div class="how-step">
+        <div class="num">2</div>
+        <h3>Pick what you're looking for</h3>
+        <p>Restaurants, cafes, gyms, mechanics, and more — restaurants can be narrowed further by cuisine, from French to Vietnamese.</p>
+      </div>
+      <div class="how-step">
+        <div class="num">3</div>
+        <h3>See what's actually good nearby</h3>
+        <p>Results are ranked by real Google ratings, review counts, distance, or our Recommended score — not just whichever pin is closest.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <h2>Frequently asked questions</h2>
+    <div class="faq-item">
+      <h3>Is MyTopRate free to use?</h3>
+      <p>Yes. No account, sign-up, or payment required — search as many times as you like.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Where does the business data come from?</h3>
+      <p>Every result — name, rating, review count, address, and hours — is pulled live from Google's business
+        listings at the moment you search, so it reflects what's actually on Google right now.</p>
+    </div>
+    <div class="faq-item">
+      <h3>What's the difference between "Top Rated" and "Recommended"?</h3>
+      <p>Top Rated sorts by raw star rating alone. Recommended uses a Bayesian-adjusted score (the same idea
+        IMDb and Amazon use) that weighs a rating against how many reviews back it up — so a 5.0 with three
+        reviews doesn't outrank a 4.7 with three thousand.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does MyTopRate track or store my location?</h3>
+      <p>No. Your zip code or coordinates are used only to run that one search and are never saved — see the
+        <a href="/privacy.html">Privacy Policy</a> for the full details.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Can I filter by things like "open now" or find the closest option?</h3>
+      <p>Yes — toggle "Open now only" to hide closed businesses, or sort by "Nearest" to rank results by actual
+        distance instead of rating.</p>
+    </div>
   </div>
 
   <footer class="attrib" id="attribFooter" style="display:none;">
@@ -1032,12 +1112,13 @@
 
   function getFilteredSortedResults(){
     var list = lastRawResults;
-    // Google is now queried with rankby=distance (the actual nearest matches, not
-    // prominence-ranked ones — see places-search.js), which doesn't accept a radius
-    // param at all. So the mile radius the user picked is enforced here instead, using
-    // the distance already computed for each result in computeDistances().
+    // Google already limits results to the requested radius, so this is just a safety
+    // net for anything that slips through slightly outside it. Results without usable
+    // coordinates are kept rather than dropped — Google's own radius filter already
+    // vouched for them, and hiding a real business over missing lat/lng would repeat
+    // exactly the kind of silent omission this app is trying to avoid.
     list = list.filter(function(p){
-      return typeof p._distanceMiles === 'number' && p._distanceMiles <= lastRadiusMiles;
+      return typeof p._distanceMiles !== 'number' || p._distanceMiles <= lastRadiusMiles + 0.25;
     });
     if(els.openNowToggle.checked){
       list = list.filter(function(p){
@@ -1276,10 +1357,12 @@
   }
 
   function updateCuisineVisibility(){
-    var selectedOption = els.typeSelect.options[els.typeSelect.selectedIndex];
-    var isPlainRestaurant = selectedOption.value === 'restaurant' && !selectedOption.getAttribute('data-keyword');
-    els.cuisineField.style.display = isPlainRestaurant ? '' : 'none';
-    if (!isPlainRestaurant) resetCuisineChips();
+    // Only the Restaurants option carries value="restaurant", so this is the check —
+    // note it deliberately does NOT exclude options with data-keyword, because
+    // Restaurants now uses keyword matching too (see the option's data-keyword).
+    var isRestaurant = els.typeSelect.options[els.typeSelect.selectedIndex].value === 'restaurant';
+    els.cuisineField.style.display = isRestaurant ? '' : 'none';
+    if (!isRestaurant) resetCuisineChips();
   }
 
   Array.prototype.forEach.call(els.cuisineChips.querySelectorAll('.cuisine-chip'), function(btn){
