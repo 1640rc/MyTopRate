@@ -588,12 +588,14 @@
     </div>
     <div class="field" style="min-width:140px;">
       <label for="radiusSelect">Search Radius</label>
-      <select id="radiusSelect">
-        <option value="1609">1 mile</option>
-        <option value="8047" selected>5 miles</option>
-        <option value="16093">10 miles</option>
-        <option value="40234">25 miles</option>
-      </select>
+   <select id="radiusSelect">
+  <option value="402">¼ mile</option>
+  <option value="805">½ mile</option>
+  <option value="1609">1 mile</option>
+  <option value="8047" selected>5 miles</option>
+  <option value="16093">10 miles</option>
+  <option value="40234">25 miles</option>
+</select>
     </div>
     <button class="btn search-btn" id="searchBtn" type="button">Search</button>
     <div class="settings-note" style="flex-basis:100%;margin-top:-4px;">
@@ -1160,7 +1162,7 @@
     // vouched for them, and hiding a real business over missing lat/lng would repeat
     // exactly the kind of silent omission this app is trying to avoid.
     list = list.filter(function(p){
-      return typeof p._distanceMiles !== 'number' || p._distanceMiles <= lastRadiusMiles + 0.25;
+      return typeof p._distanceMiles !== 'number' || p._distanceMiles <= lastRadiusMiles * 1.15;
     });
     if(els.openNowToggle.checked){
       list = list.filter(function(p){
